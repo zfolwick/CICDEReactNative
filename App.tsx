@@ -5,9 +5,13 @@
  * @format
  */
 
-import React from 'react';
+import React, {Component} from 'react';
 import type {PropsWithChildren} from 'react';
+import Crashes from 'appcenter-crashes';
+import Analytics from 'appcenter-analytics';
 import {
+  Alert,
+  Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -55,45 +59,36 @@ function Section({children, title}: SectionProps): JSX.Element {
   );
 }
 
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+export default class App extends React.Component {
+  constructor(props: any) {
+    super(props);
+    this.checkPreviousSession();
+  }
+  async checkPreviousSession() {
+    const didCrash = await Crashes.hasCrashedInLastSession();
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+    if (didCrash) {
+      const crashReport = await Crashes.lastSessionCrashReport();
 
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+      Alert.alert("Sorry about that, we're working to fix the problems");
+    }
+  }
+  render() {
+    return (
+      <View style={styles.sectionContainer}>
+        <Button
+          title="Calculate inflation"
+          onPress={() =>
+            Analytics.trackEvent('calculate inflation', {
+              Internet: 'Cellular',
+              GPS: 'on',
+              Holy_Moly: 'not holy',
+            })
+          }
+        />
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -114,5 +109,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-
-export default App;
